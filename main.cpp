@@ -750,58 +750,29 @@ int main() {
     sf::Text title;
     title.setFont(font);
     title.setString("Welcome to Minesweeper!");
-    title.setCharacterSize(32);
+    title.setCharacterSize(24);
     title.setFillColor(sf::Color::White);
     title.setStyle(sf::Text::Underlined | sf::Text::Bold);
-    setText(title, width / 2, height / 2 - 180);
+    setText(title, width / 2, height / 2 - 150);
 
     sf::Text prompt;
     prompt.setFont(font);
     prompt.setString("Enter your name: ");
-    prompt.setCharacterSize(22);
+    prompt.setCharacterSize(20);
     prompt.setFillColor(sf::Color::White);
     prompt.setStyle(sf::Text::Bold);
-    setText(prompt, width / 2, height / 2 - 120);
+    setText(prompt, width / 2, height / 2 - 75);
 
     sf::Text yourname;
     std::string inputName;
     yourname.setFont(font);
-    yourname.setCharacterSize(20);
+    yourname.setCharacterSize(18);
     yourname.setFillColor(sf::Color::Yellow);
     yourname.setStyle(sf::Text::Bold);
-    setText(yourname, width / 2, height / 2 - 90);
-
-    // Difficulty selection
-    std::string difficulties[3] = {"Easy", "Medium", "Hard"};
-    int selectedDifficulty = 0;
-    sf::Text difficultyText[3];
-    for (int i = 0; i < 3; ++i) {
-        difficultyText[i].setFont(font);
-        difficultyText[i].setString(difficulties[i]);
-        difficultyText[i].setCharacterSize(20);
-        difficultyText[i].setFillColor(i == selectedDifficulty ? sf::Color::Green : sf::Color::White);
-        setText(difficultyText[i], width / 2 - 80 + i * 80, height / 2);
-    }
-
-    // Help and Settings buttons
-    sf::Text helpBtn, settingsBtn;
-    helpBtn.setFont(font);
-    helpBtn.setString("Help");
-    helpBtn.setCharacterSize(18);
-    helpBtn.setFillColor(sf::Color::Cyan);
-    setText(helpBtn, width / 2 - 60, height / 2 + 60);
-    settingsBtn.setFont(font);
-    settingsBtn.setString("Settings");
-    settingsBtn.setCharacterSize(18);
-    settingsBtn.setFillColor(sf::Color::Cyan);
-    setText(settingsBtn, width / 2 + 60, height / 2 + 60);
+    setText(yourname, width / 2, height / 2 - 45);
 
     sf::RectangleShape cursor_shape(sf::Vector2f(5, 20));
     cursor_shape.setFillColor(sf::Color::White);
-
-    bool showHelp = false;
-    bool showSettings = false;
-    bool startGame = false;
 
     while (welcomeWindow.isOpen()) {
         sf::Event event;
@@ -809,51 +780,25 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 welcomeWindow.close();
             }
-            if (!showHelp && !showSettings) {
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter && !inputName.empty()) {
-                    startGame = true;
-                    welcomeWindow.close();
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter && !inputName.empty()) {
+                welcomeWindow.close();
+                gameWindow(font, inputName);
+            }
+            if (event.type == sf::Event::TextEntered) {
+                if (event.text.unicode == '\b' && !inputName.empty()) {
+                    inputName.pop_back();
+                } else if (event.text.unicode < 128 && isalpha(event.text.unicode) && inputName.size() < 10) {
+                    inputName += static_cast<char>(event.text.unicode);
                 }
-                if (event.type == sf::Event::TextEntered) {
-                    if (event.text.unicode == '\b' && !inputName.empty()) {
-                        inputName.pop_back();
-                    } else if (event.text.unicode < 128 && isalpha(event.text.unicode) && inputName.size() < 10) {
-                        inputName += static_cast<char>(event.text.unicode);
-                    }
-                    if (!inputName.empty()) {
-                        inputName[0] = toupper(inputName[0]);
-                        for (size_t i = 1; i < inputName.size(); ++i) {
-                            inputName[i] = tolower(inputName[i]);
-                        }
-                    }
-                    yourname.setString(inputName);
-                    setText(yourname, width / 2, height / 2 - 90);
-                }
-                if (event.type == sf::Event::MouseButtonPressed) {
-                    sf::Vector2i mousePos = sf::Mouse::getPosition(welcomeWindow);
-                    for (int i = 0; i < 3; ++i) {
-                        sf::FloatRect bounds = difficultyText[i].getGlobalBounds();
-                        if (bounds.contains(mousePos.x, mousePos.y)) {
-                            selectedDifficulty = i;
-                            for (int j = 0; j < 3; ++j)
-                                difficultyText[j].setFillColor(j == selectedDifficulty ? sf::Color::Green : sf::Color::White);
-                        }
-                    }
-                    if (helpBtn.getGlobalBounds().contains(mousePos.x, mousePos.y)) {
-                        showHelp = true;
-                    }
-                    if (settingsBtn.getGlobalBounds().contains(mousePos.x, mousePos.y)) {
-                        showSettings = true;
+                // Capitalize first letter, lowercase rest
+                if (!inputName.empty()) {
+                    inputName[0] = toupper(inputName[0]);
+                    for (size_t i = 1; i < inputName.size(); ++i) {
+                        inputName[i] = tolower(inputName[i]);
                     }
                 }
-            } else if (showHelp) {
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-                    showHelp = false;
-                }
-            } else if (showSettings) {
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-                    showSettings = false;
-                }
+                yourname.setString(inputName);
+                setText(yourname, width / 2, height / 2 - 45);
             }
             float nameTextX = yourname.getPosition().x + yourname.getLocalBounds().width / 2.f + 2;
             float nameTextY = yourname.getPosition().y - yourname.getLocalBounds().height / 2.f;
@@ -865,47 +810,7 @@ int main() {
         welcomeWindow.draw(prompt);
         welcomeWindow.draw(yourname);
         welcomeWindow.draw(cursor_shape);
-        for (int i = 0; i < 3; ++i) welcomeWindow.draw(difficultyText[i]);
-        welcomeWindow.draw(helpBtn);
-        welcomeWindow.draw(settingsBtn);
-        if (showHelp) {
-            sf::RectangleShape helpBg(sf::Vector2f(width - 100, height - 100));
-            helpBg.setFillColor(sf::Color(0,0,0,200));
-            helpBg.setPosition(50, 50);
-            welcomeWindow.draw(helpBg);
-            sf::Text helpText;
-            helpText.setFont(font);
-            helpText.setCharacterSize(18);
-            helpText.setFillColor(sf::Color::White);
-            helpText.setString("Minesweeper Instructions:\n\n- Left click to reveal a tile.\n- Right click to flag/unflag a tile.\n- Reveal all non-mine tiles to win.\n- Use the buttons for pause, debug, leaderboard.\n- Press ESC to close this window.");
-            helpText.setPosition(70, 70);
-            welcomeWindow.draw(helpText);
-        }
-        if (showSettings) {
-            sf::RectangleShape settingsBg(sf::Vector2f(width - 100, height - 100));
-            settingsBg.setFillColor(sf::Color(0,0,0,200));
-            settingsBg.setPosition(50, 50);
-            welcomeWindow.draw(settingsBg);
-            sf::Text settingsText;
-            settingsText.setFont(font);
-            settingsText.setCharacterSize(18);
-            settingsText.setFillColor(sf::Color::White);
-            settingsText.setString("Settings (future):\n- Sound: On/Off\n- Theme: Light/Dark\n- Language: English\n- Press ESC to close this window.");
-            settingsText.setPosition(70, 70);
-            welcomeWindow.draw(settingsText);
-        }
         welcomeWindow.display();
-    }
-
-    // Set config based on difficulty
-    if (startGame) {
-        int diffCols[3] = {9, 16, 24};
-        int diffRows[3] = {9, 16, 24};
-        int diffMines[3] = {10, 40, 99};
-        std::ofstream configFile("files/config.cfg");
-        configFile << diffCols[selectedDifficulty] << "\n" << diffRows[selectedDifficulty] << "\n" << diffMines[selectedDifficulty] << "\n";
-        configFile.close();
-        gameWindow(font, inputName);
     }
 
     return 0;
