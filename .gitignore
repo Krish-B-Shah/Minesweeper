@@ -1,0 +1,20 @@
+# CLion/CMake build files
+cmake-build-debug/
+CMakeFiles/
+CMakeCache.txt
+build.ninja
+cmake_install.cmake
+Testing/
+*.obj
+*.exe
+*.dll
+*.log
+*.yaml
+*.bin
+*.txt
+*.zip
+# User-specific files
+*.swp
+*.swo
+*.user
+*.idea/
